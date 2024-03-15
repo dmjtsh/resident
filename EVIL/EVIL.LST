@@ -1,0 +1,670 @@
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 1
+evil.asm
+
+
+
+      1
+      2	    0000			 .model	tiny
+      3					 .386
+      4	    0000			 .code
+      5					 org 100h
+      6					 locals	@@
+      7
+      8					 ;.data
+      9					 ;array[1000000]
+     10					 ;0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+     11					 000000000000000000000
+     12
+     13					 ;.bss
+     14					 ;array[1000000]
+     15					 ;выдели пожалуйста 1000000 байт и заполни нулями
+     16
+     17		  =00A0			 SYMBOLS_IN_ONE_LINE_COUNT equ 00A0h
+     18		  =0060			 BORDER_HORIZONTAL_OFFSET  equ 0060h
+     19		  =0006			 BORDER_VERTICAL_OFFSET	   equ 0006h
+     20		  =0006			 REGS_OFFSET		   equ 0006h
+     21		  =000D			 REGS_NUM			       equ 000Dh
+     22		  =000A			 BORDER_WIDTH		   equ 000Ah
+     23		  =000F			 BORDER_HEIGHT		   equ 000Fh
+     24		  =004E			 BORDER_COLOR		   equ 004Eh
+     25
+     26					 .CountLineStart macro
+     27							 nop
+     28
+     29							 imul di, SYMBOLS_IN_ONE_LINE_COUNT
+     30							 add  di, BORDER_HORIZONTAL_OFFSET
+     31
+     32							 nop
+     33							 endm
+     34
+     35					 .ColorBorder	 macro
+     36							 nop
+     37
+     38						     mov byte ptr ah, [bp+6] ; border color
+     39							 mov byte ptr bh, [bp+6] ; border color
+     40							 mov byte ptr ch, [bp+6] ; border color
+     41
+     42							 nop
+     43							 endm
+     44
+     45					 .GetBorder		 macro
+     46							 nop
+     47
+     48							 mov byte ptr al, [si]
+     49							 inc si
+     50							 mov byte ptr bl, [si]
+     51							 inc si
+     52							 mov byte ptr cl, [si]
+     53							 inc si
+     54
+     55							 nop
+     56							 endm
+     57
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 2
+evil.asm
+
+
+
+     58					 .WriteRegNum	 macro
+     59							 nop
+     60
+     61							 mov si, offset	HexDigitsArr
+     62							 mov cl, al
+     63							 add si, cx
+     64							 mov byte ptr dl, [si]
+     65							 mov byte ptr ES:[di], dl
+     66							 add di, 2
+     67
+     68							 nop
+     69							 endm
+     70
+     71	    0100			 Start:
+     72							 ;call Dimas08
+     73
+     74	    0100  B8 3508				 mov ax, 3508h			 ; GET INTERRUPT VECTOR
+     75	    0103  CD 21					 int 21h
+     76	    0105  89 1E	018Cr				 mov old08offs,	bx
+     77	    0109  8C C3					 mov bx, es
+     78	    010B  89 1E	018Er				 mov old08seg,	bx
+     79
+     80	    010F  B8 3509				 mov ax, 3509h			 ; GET INTERRUPT VECTOR
+     81	    0112  CD 21					 int 21h
+     82	    0114  89 1E	01B0r				 mov old09offs,	bx
+     83	    0118  8C C3					 mov bx, es
+     84	    011A  89 1E	01B2r				 mov old09seg,	bx
+     85
+     86	    011E  6A 00					 push 0
+     87	    0120  07					 pop es
+     88	    0121  BB 0020				 mov bx, 4*08h
+     89
+     90	    0124  FA					 cli
+     91	    0125  26: C7 07 0151r			 mov ES:[bx], offset Dimas08
+*Warning* evil.asm(90) Argument	needs type override
+     92	    012A  0E					 push cs
+     93	    012B  58					 pop ax
+     94	    012C  26: 89 47 02				 mov ES:[bx+2],	ax
+     95	    0130  FB					 sti
+     96
+     97	    0131  6A 00					 push 0
+     98	    0133  07					 pop es
+     99	    0134  BB 0024				 mov bx, 4*09h
+    100
+    101	    0137  FA					 cli
+    102	    0138  26: C7 07 0190r			 mov ES:[bx], offset Dimas09
+*Warning* evil.asm(101)	Argument needs type override
+    103	    013D  0E					 push cs
+    104	    013E  58					 pop ax
+    105	    013F  26: 89 47 02				 mov ES:[bx+2],	ax
+    106	    0143  FB					 sti
+    107
+    108	    0144  B8 3100				 mov ax, 3100h
+    109	    0147  BA 0367r				 mov dx, offset	ProgEnd
+    110	    014A  C1 EA	04				 shr dx, 4
+    111	    014D  42					 inc dx
+    112	    014E  CD 21					 int 21h
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 3
+evil.asm
+
+
+
+    113
+    114	    0150  C3					 ret
+    115
+    116					 ;------------------------------------
+    117					 ; Dimas08: MY OWN FUNC	OF 08 INT
+    118					 ;------------------------------------
+    119	    0151			 Dimas08  proc
+    120
+    121	    0151  2E: 80 3E 0227r 01			 cmp cs:ButtonPressed, 1
+    122	    0157  75 32	90 90				 jne @@End
+    123
+    124	    015B  16 1E	06 54 55 56 57+		 push ss ds es sp bp si	di dx cx bx ax
+    125		  52 51	53 50
+    126
+    127	    0166  68 B800				 push 0b800h
+    128	    0169  07					 pop  es
+    129
+    130	    016A  0E					 push cs
+    131	    016B  1F					 pop  ds
+    132
+    133	    016C  6A 0A	6A 0F 6A 4E 68+			 push BORDER_WIDTH BORDER_HEIGHT BORDER_COLOR offset BorderStyle
+    134		  034Er
+    135	    0175  E8 012E				 call DrawBorder
+    136	    0178  83 C4	08				 add sp, 8
+    137
+    138	    017B  E8 0036				 call DrawRegs
+    139
+    140	    017E  58 5B	59 5A 5F 5E 5D+		 pop ax	bx cx dx di si bp sp es	ds
+    141		  5C 07	1F
+    142	    0188  83 C4	02				 add sp, 2
+    143
+    144	    018B					 @@End:
+    145
+    146	    018B  EA					 db 0EAh				 ; jmp FAR old08seg:[old08offs]
+    147	    018C  0000					 old08offs dw 0
+    148	    018E  0000					 old08seg  dw 0
+    149
+    150	    0190					 endp
+    151
+    152					 ;------------------------------------
+    153					 ; Dimas09: MY OWN FUNC	OF 09 INT
+    154					 ;------------------------------------
+    155	    0190			 Dimas09 proc
+    156
+    157	    0190  50				 push ax
+    158
+    159	    0191  E4 60					 in al,	60h				 ; Read	From data port of kybd center
+    160	    0193  3C 02					 cmp al, 2h
+    161	    0195  75 17	90 90				 jne @@End
+    162
+    163	    0199  E4 61					 in al,	61h
+    164	    019B  0C 80					 or al,	80h
+    165	    019D  E6 61					 out 61h, al
+    166	    019F  24 7F					 and al, not 80h		 ; 0111	1111b
+    167	    01A1  E6 61					 out 61h, al
+    168	    01A3  B0 20					 mov al, 20h				 ; Send	EOI to intr cntrl
+    169	    01A5  E6 20					 out 20h, al
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 4
+evil.asm
+
+
+
+    170
+    171	    01A7  2E: C6 06 0227r 01  +			 mov cs:ButtonPressed, 1
+    172		  90
+    173
+    174	    01AE					 @@End:
+    175
+    176	    01AE  58				 pop ax
+    177
+    178	    01AF  EA					 db 0EAh				 ; jmp FAR old09seg:[old09offs]
+    179	    01B0  0000					 old09offs dw 0
+    180	    01B2  0000					 old09seg  dw 0
+    181
+    182	    01B4					 endp
+    183
+    184					 ;------------------------------------
+    185					 ; DrawRegs: Draws Regs	in the centre of screen
+    186					 ; Entry   : Push All Regs in Stack Frame from last to first
+    187					 ; Assumes : ES	= 0b800h
+    188					 ; Destr   : ax, bx, cx, dx, di, si
+    189					 ;------------------------------------
+    190	    01B4			 DrawRegs	 proc
+    191	    01B4  55					 push bp
+    192	    01B5  8B EC					 mov bp, sp
+    193
+    194	    01B7  B8 0000				 mov ax, 0							 ; NEXT	SYMB+
+    195					 IND
+    196	    01BA  BB 0000				 mov bx, 0							 ;	    +
+    197					 BORDER_VERTICAL_OFFSET	COUNT
+    198	    01BD  BA 000D				 mov dx, REGS_NUM					 ; REGS_NUM
+    199
+    200	    01C0  83 C5	04				 add bp, 4
+    201	    01C3					 @@Cycle:
+    202	    01C3  83 FA	00				 cmp dx, 0
+    203	    01C6  74 36	90 90				 je @@CycleEnd
+    204
+    205	    01CA  BF 0007				 mov di, BORDER_VERTICAL_OFFSET	+ 1
+    206	    01CD  03 FB					 add di, bx
+    207							 .CountLineStart
+1   208	    01CF  90					 nop
+1   209
+1   210	    01D0  69 FF	00A0				 imul di, SYMBOLS_IN_ONE_LINE_COUNT
+1   211	    01D4  83 C7	60				 add  di, BORDER_HORIZONTAL_OFFSET
+1   212
+1   213	    01D7  90					 nop
+    214	    01D8  83 C7	06				 add di, REGS_OFFSET
+    215
+    216	    01DB  BE 0200r				 mov si, offset	RegsArr
+    217	    01DE  03 F0					 add si, ax
+    218
+    219	    01E0  B9 0003				 mov cx, 3
+    220
+    221	    01E3  50 53	51 52				 push ax bx cx dx
+    222
+    223	    01E7  FF 76	00				 push [bp]
+*Warning* evil.asm(210)	Argument needs type override
+    224	    01EA  E8 003B				 call DrawRegText
+    225	    01ED  83 C4	02				 add sp, 2
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 5
+evil.asm
+
+
+
+    226	    01F0  83 C5	02				 add bp, 2
+    227
+    228	    01F3  5A 59	5B 58				 pop dx	cx bx ax
+    229
+    230	    01F7  43					 inc bx
+    231	    01F8  05 0003				 add ax, 3
+    232	    01FB  4A					 dec dx
+    233
+    234	    01FC  EB C5					 jmp @@Cycle
+    235
+    236	    01FE					 @@CycleEnd:
+    237
+    238	    01FE  5D					 pop bp
+    239	    01FF  C3					 ret
+    240	    0200					 endp
+    241
+    242	    0200  41 58	3A		 RegsArr db 'AX:'
+    243	    0203  42 58	3A				 db 'BX:'
+    244	    0206  43 58	3A				 db 'CX:'
+    245	    0209  44 58	3A				 db 'DX:'
+    246	    020C  53 49	3A				 db 'SI:'
+    247	    020F  44 49	3A				 db 'DI:'
+    248	    0212  42 50	3A				 db 'BP:'
+    249	    0215  53 50	3A				 db 'SP:'
+    250	    0218  45 53	3A				 db 'ES:'
+    251	    021B  44 53	3A				 db 'DS:'
+    252	    021E  53 53	3A				 db 'SS:'
+    253	    0221  49 50	3A				 db 'IP:'
+    254	    0224  43 53	3A				 db 'CS:'
+    255
+    256	    0227  00			 ButtonPressed db 0
+    257
+    258					 ;---------------------------------
+    259					 ;Draws	Regs Text in some place
+    260					 ;Assumes: ES =	06800h
+    261					 ;Entry: di - where to copy , si - copying source, cx -	count of symbs to copy
+    262					 ;Destr: ax, di, cx, si
+    263					 ;---------------------------------
+    264
+    265	    0228			 DrawRegText	 proc
+    266	    0228  55					 push bp
+    267	    0229  8B EC					 mov bp, sp
+    268
+    269	    022B  FC					 cld
+    270
+    271							 ; Making sure we writing letters
+    272	    022C  8B C7					 mov ax, di
+    273	    022E  25 0001				 and ax, 1
+    274	    0231  03 F8					 add di, ax
+    275
+    276	    0233					 @@Cycle:
+    277
+    278	    0233  83 F9	00				 cmp cx, 0
+    279	    0236  74 07	90 90				 je @@CycleEnd
+    280
+    281	    023A  A4					 movsb
+    282	    023B  47					 inc di
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 6
+evil.asm
+
+
+
+    283
+    284	    023C  49					 dec cx
+    285	    023D  EB F4					 jmp @@Cycle
+    286
+    287	    023F					 @@CycleEnd:
+    288
+    289	    023F  8B 46	04				 mov ax, [bp+4]
+    290	    0242  8B D8					 mov bx, ax
+    291
+    292	    0244  33 C9					 xor cx, cx
+    293
+    294	    0246  8A C7					 mov al, bh
+    295
+    296	    0248  C0 E8	04				 shr al, 4
+    297
+    298							 .WriteRegNum
+1   299	    024B  90					 nop
+1   300
+1   301	    024C  BE 0357r				 mov si, offset	HexDigitsArr
+1   302	    024F  8A C8					 mov cl, al
+1   303	    0251  03 F1					 add si, cx
+1   304	    0253  8A 14					 mov byte ptr dl, [si]
+1   305	    0255  26: 88 15				 mov byte ptr ES:[di], dl
+1   306	    0258  83 C7	02				 add di, 2
+1   307
+1   308	    025B  90					 nop
+    309
+    310	    025C  8A C7					 mov al, bh
+    311	    025E  C0 E0	04				 shl al, 4
+    312	    0261  C0 E8	04				 shr al, 4
+    313
+    314							 .WriteRegNum
+1   315	    0264  90					 nop
+1   316
+1   317	    0265  BE 0357r				 mov si, offset	HexDigitsArr
+1   318	    0268  8A C8					 mov cl, al
+1   319	    026A  03 F1					 add si, cx
+1   320	    026C  8A 14					 mov byte ptr dl, [si]
+1   321	    026E  26: 88 15				 mov byte ptr ES:[di], dl
+1   322	    0271  83 C7	02				 add di, 2
+1   323
+1   324	    0274  90					 nop
+    325
+    326	    0275  8A C3					 mov al, bl
+    327	    0277  C0 E8	04				 shr al, 4
+    328
+    329							 .WriteRegNum
+1   330	    027A  90					 nop
+1   331
+1   332	    027B  BE 0357r				 mov si, offset	HexDigitsArr
+1   333	    027E  8A C8					 mov cl, al
+1   334	    0280  03 F1					 add si, cx
+1   335	    0282  8A 14					 mov byte ptr dl, [si]
+1   336	    0284  26: 88 15				 mov byte ptr ES:[di], dl
+1   337	    0287  83 C7	02				 add di, 2
+1   338
+1   339	    028A  90					 nop
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 7
+evil.asm
+
+
+
+    340
+    341	    028B  8A C3					 mov al, bl
+    342	    028D  C0 E0	04				 shl al, 4
+    343	    0290  C0 E8	04				 shr al, 4
+    344
+    345							 .WriteRegNum
+1   346	    0293  90					 nop
+1   347
+1   348	    0294  BE 0357r				 mov si, offset	HexDigitsArr
+1   349	    0297  8A C8					 mov cl, al
+1   350	    0299  03 F1					 add si, cx
+1   351	    029B  8A 14					 mov byte ptr dl, [si]
+1   352	    029D  26: 88 15				 mov byte ptr ES:[di], dl
+1   353	    02A0  83 C7	02				 add di, 2
+1   354
+1   355	    02A3  90					 nop
+    356
+    357	    02A4  5D					 pop bp
+    358	    02A5  C3					 ret
+    359	    02A6					 endp
+    360
+    361					 ;------------------------------------
+    362					 ; DrawsBorder in the centre of	screen
+    363					 ; Entry: none;	Assumes: ES = 0b800h
+    364					 ; Destr:   ax,	bx, cx,	dx, di,	si
+    365					 ;------------------------------------
+    366	    02A6			 DrawBorder	 proc
+    367	    02A6  55					 push bp
+    368	    02A7  8B EC					 mov bp, sp
+    369
+    370	    02A9  FF 4E	08				 dec [bp+8]
+*Warning* evil.asm(317)	Argument needs type override
+    371
+    372							 .ColorBorder
+1   373	    02AC  90					 nop
+1   374
+1   375	    02AD  8A 66	06			     mov byte ptr ah, [bp+6] ; border color
+1   376	    02B0  8A 7E	06				 mov byte ptr bh, [bp+6] ; border color
+1   377	    02B3  8A 6E	06				 mov byte ptr ch, [bp+6] ; border color
+1   378
+1   379	    02B6  90					 nop
+    380	    02B7  8B 76	04				 mov si, [bp+4]
+    381							 .GetBorder
+1   382	    02BA  90					 nop
+1   383
+1   384	    02BB  8A 04					 mov byte ptr al, [si]
+1   385	    02BD  46					 inc si
+1   386	    02BE  8A 1C					 mov byte ptr bl, [si]
+1   387	    02C0  46					 inc si
+1   388	    02C1  8A 0C					 mov byte ptr cl, [si]
+1   389	    02C3  46					 inc si
+1   390
+1   391	    02C4  90					 nop
+    392
+    393	    02C5  BF 0006				 mov di, BORDER_VERTICAL_OFFSET			 ; line	num
+    394	    02C8  57					 push di								 ;  +
+    395					 PUSH DI
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 8
+evil.asm
+
+
+
+    396							 .CountLineStart
+1   397	    02C9  90					 nop
+1   398
+1   399	    02CA  69 FF	00A0				 imul di, SYMBOLS_IN_ONE_LINE_COUNT
+1   400	    02CE  83 C7	60				 add  di, BORDER_HORIZONTAL_OFFSET
+1   401
+1   402	    02D1  90					 nop
+    403
+    404	    02D2  FF 76	0A				 push [bp+10]							 ; border   +
+    405					 height
+*Warning* evil.asm(327)	Argument needs type override
+    406	    02D5  E8 0052				 call DrawLine
+    407	    02D8  83 C4	02				 add sp, 2
+    408	    02DB  5F					 pop di									 ;  +
+    409					 POP DI
+    410
+    411							 .GetBorder
+1   412	    02DC  90					 nop
+1   413
+1   414	    02DD  8A 04					 mov byte ptr al, [si]
+1   415	    02DF  46					 inc si
+1   416	    02E0  8A 1C					 mov byte ptr bl, [si]
+1   417	    02E2  46					 inc si
+1   418	    02E3  8A 0C					 mov byte ptr cl, [si]
+1   419	    02E5  46					 inc si
+1   420
+1   421	    02E6  90					 nop
+    422
+    423	    02E7					 @@Cycle:
+    424	    02E7  47					 inc di
+    425	    02E8  FF 4E	08				 dec [bp+8]
+*Warning* evil.asm(336)	Argument needs type override
+    426
+    427	    02EB  83 7E	08 00				 cmp [bp+8], 0h
+*Warning* evil.asm(338)	Argument needs type override
+    428	    02EF  74 18	90 90				 je @@CycleEnd
+    429
+    430	    02F3  57					 push di
+    431							 .CountLineStart
+1   432	    02F4  90					 nop
+1   433
+1   434	    02F5  69 FF	00A0				 imul di, SYMBOLS_IN_ONE_LINE_COUNT
+1   435	    02F9  83 C7	60				 add  di, BORDER_HORIZONTAL_OFFSET
+1   436
+1   437	    02FC  90					 nop
+    438
+    439	    02FD  FF 76	0A				 push [bp+10]							 ; border   +
+    440					 height
+*Warning* evil.asm(344)	Argument needs type override
+    441	    0300  E8 0027				 call DrawLine
+    442	    0303  83 C4	02				 add sp, 2
+    443	    0306  5F					 pop di
+    444
+    445	    0307  EB DE					 jmp @@Cycle
+    446
+    447	    0309					 @@CycleEnd:
+    448
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 9
+evil.asm
+
+
+
+    449							 .GetBorder
+1   450	    0309  90					 nop
+1   451
+1   452	    030A  8A 04					 mov byte ptr al, [si]
+1   453	    030C  46					 inc si
+1   454	    030D  8A 1C					 mov byte ptr bl, [si]
+1   455	    030F  46					 inc si
+1   456	    0310  8A 0C					 mov byte ptr cl, [si]
+1   457	    0312  46					 inc si
+1   458
+1   459	    0313  90					 nop
+    460	    0314  57					 push di
+    461							 .CountLineStart
+1   462	    0315  90					 nop
+1   463
+1   464	    0316  69 FF	00A0				 imul di, SYMBOLS_IN_ONE_LINE_COUNT
+1   465	    031A  83 C7	60				 add  di, BORDER_HORIZONTAL_OFFSET
+1   466
+1   467	    031D  90					 nop
+    468
+    469	    031E  FF 76	0A				 push [bp+10]							 ; border   +
+    470					 height
+*Warning* evil.asm(357)	Argument needs type override
+    471	    0321  E8 0006				 call DrawLine
+    472	    0324  83 C4	02				 add sp, 2
+    473	    0327  5F					 pop di
+    474
+    475	    0328  5D					 pop bp
+    476	    0329  C3					 ret
+    477	    032A					 endp
+    478
+    479					 ;---------------------------------
+    480					 ;Draws	Line in	some place
+    481					 ;Entry: ax - left symb, bx - center symb, cx- right symb, di -	line start, [bp+4] - border +
+    482					 length
+    483					 ;Assumes: ES =	06800h
+    484					 ;Destr: di, dx
+    485					 ;---------------------------------
+    486	    032A			 DrawLine	 proc
+    487	    032A  55					 push bp
+    488	    032B  8B EC					 mov bp, sp
+    489
+    490	    032D  26: 89 05				 mov ES:[di], ax
+    491	    0330  83 C7	02				 add di, 2
+    492
+    493	    0333  BA 0000				 mov dx, 0h
+    494	    0336					 @@Cycle:
+    495	    0336  3B 56	04					 cmp dx, [bp+4]
+    496	    0339  74 0B	90 90					 je @@CycleEnd
+    497
+    498	    033D  26: 89 1D					 mov ES:[di], bx
+    499
+    500	    0340  83 C7	02					 add di, 2
+    501
+    502	    0343  42						 inc dx
+    503	    0344  EB F0						 jmp @@Cycle
+    504	    0346					 @@CycleEnd:
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 10
+evil.asm
+
+
+
+    505
+    506	    0346  26: 89 0D				 mov ES:[di], cx
+    507	    0349  83 C7	02				 add di, 2
+    508
+    509	    034C  5D					 pop bp
+    510	    034D  C3					 ret
+    511	    034E					 endp
+    512
+    513	    034E  44 45	44 7C 20 7C 50+	 BorderStyle  db 'DED| |PDR'
+    514		  44 52
+    515	    0357  30 31	32 33 34 35 36+	 HexDigitsArr db '0123456789ABCDEF'
+    516		  37 38	39 41 42 43 44+
+    517		  45 46
+    518
+    519	    0367			 ProgEnd:
+    520					 end Start
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 11
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/02/24"
+??FILENAME			  Text	 "evil	  "
+??TIME				  Text	 "21:43:14"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@@CYCLE				  Near	 DGROUP:01C3
+@@CYCLE				  Near	 DGROUP:0233
+@@CYCLE				  Near	 DGROUP:02E7
+@@CYCLE				  Near	 DGROUP:0336
+@@CYCLEEND			  Near	 DGROUP:01FE
+@@CYCLEEND			  Near	 DGROUP:023F
+@@CYCLEEND			  Near	 DGROUP:0309
+@@CYCLEEND			  Near	 DGROUP:0346
+@@END				  Near	 DGROUP:018B
+@@END				  Near	 DGROUP:01AE
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0F0FH
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 EVIL
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+BORDERSTYLE			  Byte	 DGROUP:034E
+BORDER_COLOR			  Number 004E
+BORDER_HEIGHT			  Number 000F
+BORDER_HORIZONTAL_OFFSET	  Number 0060
+BORDER_VERTICAL_OFFSET		  Number 0006
+BORDER_WIDTH			  Number 000A
+BUTTONPRESSED			  Byte	 DGROUP:0227
+DIMAS08				  Near	 DGROUP:0151
+DIMAS09				  Near	 DGROUP:0190
+DRAWBORDER			  Near	 DGROUP:02A6
+DRAWLINE			  Near	 DGROUP:032A
+DRAWREGS			  Near	 DGROUP:01B4
+DRAWREGTEXT			  Near	 DGROUP:0228
+HEXDIGITSARR			  Byte	 DGROUP:0357
+OLD08OFFS			  Word	 DGROUP:018C
+OLD08SEG			  Word	 DGROUP:018E
+OLD09OFFS			  Word	 DGROUP:01B0
+OLD09SEG			  Word	 DGROUP:01B2
+PROGEND				  Near	 DGROUP:0367
+REGSARR				  Byte	 DGROUP:0200
+REGS_NUM			  Number 000D
+REGS_OFFSET			  Number 0006
+START				  Near	 DGROUP:0100
+SYMBOLS_IN_ONE_LINE_COUNT	  Number 00A0
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 12
+Symbol Table
+
+
+
+
+Macro Name
+
+.COLORBORDER
+.COUNTLINESTART
+.GETBORDER
+.WRITEREGNUM
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  0367 Word	  Public  CODE
+Turbo Assembler	 Version 4.1	    03/02/24 21:43:14	    Page 13
+Error Summary
+
+
+
+*Warning* evil.asm(90) Argument	needs type override
+*Warning* evil.asm(101)	Argument needs type override
+*Warning* evil.asm(210)	Argument needs type override
+*Warning* evil.asm(317)	Argument needs type override
+*Warning* evil.asm(327)	Argument needs type override
+*Warning* evil.asm(336)	Argument needs type override
+*Warning* evil.asm(338)	Argument needs type override
+*Warning* evil.asm(344)	Argument needs type override
+*Warning* evil.asm(357)	Argument needs type override
+

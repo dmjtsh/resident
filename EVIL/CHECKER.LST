@@ -1,0 +1,175 @@
+Turbo Assembler	 Version 4.1	    03/02/24 20:30:26	    Page 1
+lol.asm
+
+
+
+      1
+      2	    0000			 .model	tiny
+      3					 .386
+      4	    0000			 .code
+      5					 org 100h
+      6					 locals	@@
+      7
+      8					 .WriteRegNum	 macro
+      9							 nop
+     10
+     11							 mov si, offset	HexDigitsArr
+     12							 mov cl, al
+     13							 add si, cx
+     14							 mov byte ptr dl, [si]
+     15							 mov byte ptr [di], dl
+     16							 add di, 1
+     17
+     18							 nop
+     19							 endm
+     20
+     21	    0100			 Start:
+     22	    0100  BF 0187r				 mov di, offset	CSSegStr
+     23
+     24	    0103  8C C8					 mov ax, cs
+     25	    0105  8B D8					 mov bx, ax
+     26
+     27	    0107  33 C9					 xor cx, cx
+     28
+     29	    0109  8A C7					 mov al, bh
+     30
+     31	    010B  C0 E8	04				 shr al, 4
+     32
+     33							 .WriteRegNum
+1    34	    010E  90					 nop
+1    35
+1    36	    010F  BE 018Cr				 mov si, offset	HexDigitsArr
+1    37	    0112  8A C8					 mov cl, al
+1    38	    0114  03 F1					 add si, cx
+1    39	    0116  8A 14					 mov byte ptr dl, [si]
+1    40	    0118  88 15					 mov byte ptr [di], dl
+1    41	    011A  83 C7	01				 add di, 1
+1    42
+1    43	    011D  90					 nop
+     44
+     45	    011E  8A C7					 mov al, bh
+     46	    0120  C0 E0	04				 shl al, 4
+     47	    0123  C0 E8	04				 shr al, 4
+     48
+     49							 .WriteRegNum
+1    50	    0126  90					 nop
+1    51
+1    52	    0127  BE 018Cr				 mov si, offset	HexDigitsArr
+1    53	    012A  8A C8					 mov cl, al
+1    54	    012C  03 F1					 add si, cx
+1    55	    012E  8A 14					 mov byte ptr dl, [si]
+1    56	    0130  88 15					 mov byte ptr [di], dl
+1    57	    0132  83 C7	01				 add di, 1
+Turbo Assembler	 Version 4.1	    03/02/24 20:30:26	    Page 2
+lol.asm
+
+
+
+1    58
+1    59	    0135  90					 nop
+     60
+     61	    0136  8A C3					 mov al, bl
+     62	    0138  C0 E8	04				 shr al, 4
+     63
+     64							 .WriteRegNum
+1    65	    013B  90					 nop
+1    66
+1    67	    013C  BE 018Cr				 mov si, offset	HexDigitsArr
+1    68	    013F  8A C8					 mov cl, al
+1    69	    0141  03 F1					 add si, cx
+1    70	    0143  8A 14					 mov byte ptr dl, [si]
+1    71	    0145  88 15					 mov byte ptr [di], dl
+1    72	    0147  83 C7	01				 add di, 1
+1    73
+1    74	    014A  90					 nop
+     75
+     76	    014B  8A C3					 mov al, bl
+     77	    014D  C0 E0	04				 shl al, 4
+     78	    0150  C0 E8	04				 shr al, 4
+     79
+     80							 .WriteRegNum
+1    81	    0153  90					 nop
+1    82
+1    83	    0154  BE 018Cr				 mov si, offset	HexDigitsArr
+1    84	    0157  8A C8					 mov cl, al
+1    85	    0159  03 F1					 add si, cx
+1    86	    015B  8A 14					 mov byte ptr dl, [si]
+1    87	    015D  88 15					 mov byte ptr [di], dl
+1    88	    015F  83 C7	01				 add di, 1
+1    89
+1    90	    0162  90					 nop
+     91
+     92	    0163  B4 09					 mov ah, 9h
+     93	    0165  BA 0187r				 mov dx, offset	CSSegStr
+     94	    0168  CD 21					 int 21h
+     95
+     96	    016A					 @@Cycle:
+     97
+     98	    016A  B8 1111				 mov ax, 1111h
+     99	    016D  BB 2222				 mov bx, 2222h
+    100	    0170  B9 3333				 mov cx, 3333h
+    101	    0173  BA 4444				 mov dx, 4444h
+    102	    0176  BF 5555				 mov di, 5555h
+    103	    0179  BE 6666				 mov si, 6666h
+    104
+    105	    017C  E4 60					 in al,	60h				 ; Read	From data port of kybd center
+    106	    017E  3C 01					 cmp al, 1h
+    107	    0180  74 04	90 90				 je @@End
+    108
+    109	    0184  EB E4					 jmp @@Cycle
+    110
+    111	    0186					 @@End:
+    112
+    113	    0186  C3					 ret
+    114
+Turbo Assembler	 Version 4.1	    03/02/24 20:30:26	    Page 3
+lol.asm
+
+
+
+    115	    0187  30 30	30 30 24	 CSSegStr     db '0000$'
+    116	    018C  30 31	32 33 34 35 36+	 HexDigitsArr db '0123456789ABCDEF'
+    117		  37 38	39 41 42 43 44+
+    118		  45 46
+    119
+    120					 end Start
+Turbo Assembler	 Version 4.1	    03/02/24 20:30:26	    Page 4
+Symbol Table
+
+
+
+
+Symbol Name			  Type	 Value
+
+??DATE				  Text	 "03/02/24"
+??FILENAME			  Text	 "lol	  "
+??TIME				  Text	 "20:30:26"
+??VERSION			  Number 040A
+@32BIT				  Text	 0
+@@CYCLE				  Near	 DGROUP:016A
+@@END				  Near	 DGROUP:0186
+@CODE				  Text	 DGROUP
+@CODESIZE			  Text	 0
+@CPU				  Text	 0F0FH
+@CURSEG				  Text	 _TEXT
+@DATA				  Text	 DGROUP
+@DATASIZE			  Text	 0
+@FILENAME			  Text	 LOL
+@INTERFACE			  Text	 000H
+@MODEL				  Text	 1
+@STACK				  Text	 DGROUP
+@WORDSIZE			  Text	 2
+CSSEGSTR			  Byte	 DGROUP:0187
+HEXDIGITSARR			  Byte	 DGROUP:018C
+START				  Near	 DGROUP:0100
+
+Macro Name
+
+.WRITEREGNUM
+
+Groups & Segments		  Bit Size Align  Combine Class
+
+DGROUP				  Group
+  _DATA				  16  0000 Word	  Public  DATA
+  _TEXT				  16  019C Word	  Public  CODE
+
